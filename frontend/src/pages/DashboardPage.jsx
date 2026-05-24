@@ -366,8 +366,214 @@ function DashboardPage({
                         </button>
                     </div>
 
-                    {/* rest of component unchanged */}
+                    <div className="notification-box">
+                        <div className="notification-box-header">
+                            <h3>Notifications</h3>
+                            <span>{notifications.length}</span>
+                        </div>
+
+                        {notifications.length ? (
+                            <ul className="notification-list">
+                                {notifications.map((notification) => (
+                                    <li key={notification.id}>
+                                        <button
+                                            className="notification-item"
+                                            onClick={() =>
+                                                onAcknowledgeNotification(
+                                                    notification.id
+                                                )
+                                            }
+                                            type="button"
+                                        >
+                                            <span>{notification.message}</span>
+                                            <small>
+                                                {formatDate(
+                                                    notification.receivedAt
+                                                )}
+                                            </small>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="notification-empty">
+                                No new notifications.
+                            </p>
+                        )}
+                    </div>
                 </div>
+
+                <section className="dashboard-panel chat-panel">
+                    <div className="panel-header">
+                        <div>
+                            <h2>Assistant</h2>
+                            <span className="panel-meta">
+                                Ask about balances, transactions, or transfers
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        className="chat-messages"
+                        ref={chatMessagesRef}
+                    >
+                        {chatMessages.map((chatMessage) => (
+                            <div
+                                className={`chat-message ${chatMessage.role}`}
+                                key={chatMessage.id}
+                            >
+                                {chatMessage.content}
+                            </div>
+                        ))}
+
+                        {chatLoading && (
+                            <div className="chat-message assistant">
+                                Thinking...
+                            </div>
+                        )}
+                    </div>
+
+                    <form
+                        className="chat-form"
+                        onSubmit={handleSendChatMessage}
+                    >
+                        <input
+                            aria-label="Chat message"
+                            onChange={(event) =>
+                                setChatInput(event.target.value)
+                            }
+                            placeholder="Ask the assistant..."
+                            value={chatInput}
+                        />
+
+                        <button
+                            className="primary-button"
+                            disabled={chatLoading}
+                            type="submit"
+                        >
+                            Send
+                        </button>
+                    </form>
+
+                    {chatError && (
+                        <p className="form-message">{chatError}</p>
+                    )}
+                </section>
+
+                <section className="dashboard-panel activity-panel">
+                    <div className="panel-header">
+                        <div>
+                            <h2>Recent transactions</h2>
+                            <span className="panel-meta">
+                                Page {transactionsPagination.page} of{' '}
+                                {totalTransactionPages}
+                            </span>
+                        </div>
+                    </div>
+
+                    {transactionsLoading ? (
+                        <div className="empty-state">
+                            Loading transactions...
+                        </div>
+                    ) : transactionsError ? (
+                        <div className="empty-state">
+                            {transactionsError}
+                        </div>
+                    ) : transactions.length ? (
+                        <>
+                            <ul className="transaction-list">
+                                {transactions.map((transaction) => (
+                                    <li
+                                        className="transaction-item"
+                                        key={transaction._id}
+                                    >
+                                        <div>
+                                            <strong>
+                                                {transaction.type ===
+                                                'received'
+                                                    ? 'Received'
+                                                    : 'Sent'}
+                                            </strong>
+
+                                            <span>
+                                                {transaction.otherParty ||
+                                                    'Unknown account'}
+                                            </span>
+
+                                            <span>
+                                                {formatDate(
+                                                    transaction.timestamp
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        <strong
+                                            className={`transaction-amount ${transaction.type}`}
+                                        >
+                                            {formatAmount(transaction)}
+                                        </strong>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="pagination-controls">
+                                <button
+                                    disabled={!hasPreviousTransactionsPage}
+                                    onClick={() => {
+                                        preserveScrollForTransactionPageChange();
+                                        setTransactionsPage(
+                                            (page) => page - 1
+                                        );
+                                    }}
+                                    type="button"
+                                >
+                                    Previous
+                                </button>
+
+                                <form
+                                    className="page-jump-form"
+                                    onSubmit={handleTransactionPageJump}
+                                >
+                                    <label>
+                                        Page
+                                        <input
+                                            min="1"
+                                            name="transactionPage"
+                                            onChange={(event) =>
+                                                setTransactionsPageInput(
+                                                    event.target.value
+                                                )
+                                            }
+                                            type="number"
+                                            value={transactionsPageInput}
+                                        />
+                                    </label>
+
+                                    <button type="submit">
+                                        Go
+                                    </button>
+                                </form>
+
+                                <button
+                                    disabled={!hasNextTransactionsPage}
+                                    onClick={() => {
+                                        preserveScrollForTransactionPageChange();
+                                        setTransactionsPage(
+                                            (page) => page + 1
+                                        );
+                                    }}
+                                    type="button"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="empty-state">
+                            No transactions yet.
+                        </div>
+                    )}
+                </section>
             </section>
         </main>
     );
