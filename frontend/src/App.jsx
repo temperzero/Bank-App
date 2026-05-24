@@ -5,6 +5,9 @@ import DashboardPage from './pages/DashboardPage';
 import TransactionPage from './pages/TransactionPage';
 import { io } from 'socket.io-client';
 
+const API_URL =
+    import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const readStoredList = (key) => {
     try {
         return JSON.parse(localStorage.getItem(key)) || [];
@@ -56,7 +59,7 @@ function App() {
     useEffect(() => {
         const loadSession = async () => {
             try {
-                const response = await fetch('http://localhost:3000/user/profile', {
+                const response = await fetch(`${API_URL}/user/profile', {
                     credentials: 'include'
                 });
 
@@ -157,7 +160,7 @@ function App() {
 
     const handleLogout = async () => {
         try {
-            await fetch('http://localhost:3000/auth/logout', {
+            await fetch(`${API_URL}/auth/logout', {
                 method: 'POST',
                 credentials: 'include'
             });
