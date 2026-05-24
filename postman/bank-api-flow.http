@@ -1,0 +1,60 @@
+@baseUrl = http://localhost:3000
+@senderEmail = omer-test-1@gmail.com
+@recipientEmail = friend-test-1@gmail.com
+@password = 0000
+@otp = 123456
+@amount = 25.75
+
+### 1. Signup Sender
+# @name signupSender
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{senderEmail}}",
+  "password": "{{password}}"
+}
+
+### 2. Verify Sender OTP
+# @name verifySender
+POST {{baseUrl}}/auth/verify-otp
+Content-Type: application/json
+
+{
+  "userId": "{{signupSender.response.body.userId}}",
+  "otp": "{{otp}}"
+}
+
+### 3. Login Sender
+# @name loginSender
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{senderEmail}}",
+  "password": "{{password}}"
+}
+
+### 4. Signup Recipient
+# @name signupRecipient
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{recipientEmail}}",
+  "password": "{{password}}"
+}
+
+### 5. Send Transaction
+# @name sendTransaction
+POST {{baseUrl}}/transaction/send
+Content-Type: application/json
+
+{
+  "recipientEmail": "{{recipientEmail}}",
+  "amount": {{amount}}
+}
+
+### 6. Get Transaction History
+# @name getHistory
+GET {{baseUrl}}/transaction/history?page=1&limit=10

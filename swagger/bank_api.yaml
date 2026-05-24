@@ -1,0 +1,366 @@
+openapi: '3.0.3'
+
+info:
+  title: Web Banking API
+  version: '1.0'
+  description: API for a web banking application
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    PublicUser:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6635a8d5b6c1f33e5d8b4567
+        email:
+          type: string
+          format: email
+          example: omer@gmail.com
+        balance:
+          type: number
+          example: 5000.5
+        isVerified:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - balance
+        - isVerified
+        - createdAt
+
+    Transaction:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6635a97eb6c1f33e5d8b4568
+        userId:
+          type: string
+          example: 6635a8d5b6c1f33e5d8b4567
+        type:
+          type: string
+          enum:
+            - sent
+            - received
+          example: sent
+        amount:
+          type: number
+          minimum: 0.01
+          example: 25.75
+        otherParty:
+          type: string
+          format: email
+          example: friend@gmail.com
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - _id
+        - userId
+        - type
+        - amount
+        - otherParty
+        - timestamp
+
+paths:
+  /auth/signup:
+    post:
+      summary: Sign up a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: omer@gmail.com
+                password:
+                  type: string
+                  minLength: 3
+                  example: '0000'
+              required:
+                - email
+                - password
+      responses:
+        '201':
+          description: User created and verification email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verification email sent
+                  userId:
+                    type: string
+                    example: 6635a8d5b6c1f33e5d8b4567
+        '400':
+          description: Missing fields, invalid input, or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-otp:
+    post:
+      summary: Verify a user's OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: 6635a8d5b6c1f33e5d8b4567
+                otp:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  example: '123456'
+              required:
+                - userId
+                - otp
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/PublicUser'
+        '400':
+          description: Missing fields, user not found, or invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: omer@gmail.com
+                password:
+                  type: string
+                  example: '0000'
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/PublicUser'
+        '400':
+          description: Missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials or user not verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/profile:
+    get:
+      summary: Get the authenticated user's profile
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User profile returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUser'
+        '401':
+          description: Invalid or missing auth cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/balance:
+    get:
+      summary: Get the authenticated user's balance
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Balance returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    example: 5000.5
+        '401':
+          description: Invalid or missing auth cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transaction/send:
+    post:
+      summary: Send money to another user
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipientEmail:
+                  type: string
+                  format: email
+                  example: friend@gmail.com
+                amount:
+                  type: number
+                  minimum: 0.01
+                  example: 25.75
+              required:
+                - recipientEmail
+                - amount
+      responses:
+        '200':
+          description: Money sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Missing fields, invalid amount, recipient issue, or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or missing auth cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transaction/history:
+    get:
+      summary: Get paginated transaction history
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number to return
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of transactions per page
+      responses:
+        '200':
+          description: Paginated transaction history returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        example: 2
+                      limit:
+                        type: integer
+                        example: 10
+                      total:
+                        type: integer
+                        example: 43
+                      totalPages:
+                        type: integer
+                        example: 5
+                    required:
+                      - page
+                      - limit
+                      - total
+                      - totalPages
+                required:
+                  - transactions
+                  - pagination
+        '400':
+          description: Invalid page or limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or missing auth cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

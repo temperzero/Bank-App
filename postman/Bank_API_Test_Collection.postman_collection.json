@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "Bank API Test Flow",
+    "description": "Signup sender, verify OTP, login, signup recipient, send transaction, and check history.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "senderEmail",
+      "value": ""
+    },
+    {
+      "key": "recipientEmail",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": "0000"
+    },
+    {
+      "key": "otp",
+      "value": "123456"
+    },
+    {
+      "key": "amount",
+      "value": "25.75"
+    },
+    {
+      "key": "senderUserId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Signup Sender",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var suffix = Date.now().toString().slice(-8);",
+              "pm.collectionVariables.set('senderEmail', 'omer' + suffix + '@gmail.com');",
+              "pm.collectionVariables.set('recipientEmail', 'friend' + suffix + '@gmail.com');",
+              "pm.collectionVariables.set('password', '0000');",
+              "pm.collectionVariables.set('otp', '123456');",
+              "pm.collectionVariables.set('amount', '25.75');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('sender signup returns 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "var json = pm.response.json();",
+              "pm.collectionVariables.set('senderUserId', json.userId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{senderEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/signup"
+      }
+    },
+    {
+      "name": "2. Verify Sender OTP",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('sender OTP verification returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var json = pm.response.json();"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{senderUserId}}\",\n  \"otp\": \"{{otp}}\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/verify-otp"
+      }
+    },
+    {
+      "name": "3. Login Sender",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('sender login returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var json = pm.response.json();"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{senderEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "4. Signup Recipient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('recipient signup returns 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{recipientEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/signup"
+      }
+    },
+    {
+      "name": "5. Send Transaction",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('send transaction returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var json = pm.response.json();",
+              "pm.test('transaction is sent to recipient', function () {",
+              "    pm.expect(json.type).to.equal('sent');",
+              "    pm.expect(json.otherParty).to.equal(pm.collectionVariables.get('recipientEmail'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipientEmail\": \"{{recipientEmail}}\",\n  \"amount\": {{amount}}\n}"
+        },
+        "url": "{{baseUrl}}/transaction/send"
+      }
+    },
+    {
+      "name": "6. Get Transaction History",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('history returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "var json = pm.response.json();",
+              "pm.test('history has pagination', function () {",
+              "    pm.expect(json.transactions).to.be.an('array');",
+              "    pm.expect(json.pagination.page).to.equal(1);",
+              "    pm.expect(json.pagination.limit).to.equal(10);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/transaction/history?page=1&limit=10"
+      }
+    }
+  ]
+}
