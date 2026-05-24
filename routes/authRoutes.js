@@ -9,11 +9,12 @@ const { sendVerificationEmail } = require('../email');
 /* ===== AUTH ROUTES ===== */
 
 const ONE_HOUR = 60 * 60 * 1000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 const authCookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: ONE_HOUR
 };
 
@@ -204,8 +205,8 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax'
     });
 
     res.send({ message: 'Logged out' });

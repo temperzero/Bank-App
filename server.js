@@ -20,16 +20,17 @@ const db = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
-const MONGO_URI = process.env.MONGO_URI;
-
-if (!MONGO_URI) {
-    throw new Error('Missing MONGO_URI environment variable');
-}
-
+const MONGO_URI =
+    process.env.MONGO_URI ||
+    (
+        process.env.NODE_ENV === 'production'
+            ? ''
+            : 'mongodb://localhost:27017/bank'
+    );
 const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  process.env.FRONTEND_URL
+    'http://localhost:5173',
+    'http://localhost:5174',
+    process.env.FRONTEND_URL
 ].filter(Boolean);
 
 const app = express();
@@ -105,6 +106,10 @@ io.on('connection', (socket) => {
 
 if (!JWT_SECRET) {
     throw new Error('Missing JWT_SECRET environment variable');
+}
+
+if (!MONGO_URI) {
+    throw new Error('Missing MONGO_URI environment variable');
 }
 
 async function removeLegacyPhoneField() {
