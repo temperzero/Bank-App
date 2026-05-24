@@ -20,7 +20,12 @@ const db = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/bank';
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+    throw new Error('Missing MONGO_URI environment variable');
+}
+
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174'
