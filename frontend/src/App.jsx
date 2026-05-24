@@ -37,10 +37,12 @@ const loadStoredNotifications = (userId) => {
 
     const storageKeys = getNotificationStorageKeys(userId);
     const acknowledgedIds = new Set(readStoredList(storageKeys.acknowledged));
+
     const storedNotifications = readStoredList(storageKeys.notifications)
         .filter((notification) => !acknowledgedIds.has(notification.id));
 
     writeStoredList(storageKeys.notifications, storedNotifications);
+
     return storedNotifications;
 };
 
@@ -50,8 +52,13 @@ function App() {
     const [latestNotification, setLatestNotification] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const [isCheckingSession, setIsCheckingSession] = useState(true);
+
     const userId = user?.id;
-    const notificationStorageKey = userId ? `boolean-bank:notifications:${userId}` : '';
+
+    const notificationStorageKey = userId
+        ? `boolean-bank:notifications:${userId}`
+        : '';
+
     const acknowledgedNotificationStorageKey = userId
         ? `boolean-bank:acknowledged-notifications:${userId}`
         : '';
@@ -59,7 +66,7 @@ function App() {
     useEffect(() => {
         const loadSession = async () => {
             try {
-                const response = await fetch(`${API_URL}/user/profile', {
+                const response = await fetch(`${API_URL}/user/profile`, {
                     credentials: 'include'
                 });
 
@@ -69,6 +76,7 @@ function App() {
                 }
 
                 const data = await response.json();
+
                 setUser(data);
                 setNotifications(loadStoredNotifications(data.id));
             } catch (error) {
@@ -88,7 +96,7 @@ function App() {
             return;
         }
 
-        const socket = io('http://localhost:3000', {
+        const socket = io(API_URL, {
             withCredentials: true
         });
 
@@ -109,24 +117,36 @@ function App() {
 
             setLatestNotification(nextNotification);
 
-            const acknowledgedIds = readStoredList(acknowledgedNotificationStorageKey);
+            const acknowledgedIds = readStoredList(
+                acknowledgedNotificationStorageKey
+            );
 
             if (!acknowledgedIds.includes(nextNotification.id)) {
                 setNotifications((currentNotifications) => {
                     const nextNotifications = [
                         nextNotification,
-                        ...currentNotifications.filter((item) => item.id !== nextNotification.id)
+                        ...currentNotifications.filter(
+                            (item) => item.id !== nextNotification.id
+                        )
                     ].slice(0, 10);
 
-                    writeStoredList(notificationStorageKey, nextNotifications);
+                    writeStoredList(
+                        notificationStorageKey,
+                        nextNotifications
+                    );
+
                     return nextNotifications;
                 });
             }
 
             if (typeof notification.balance === 'number') {
-                setUser((currentUser) => currentUser
-                    ? { ...currentUser, balance: notification.balance }
-                    : currentUser
+                setUser((currentUser) =>
+                    currentUser
+                        ? {
+                            ...currentUser,
+                            balance: notification.balance
+                        }
+                        : currentUser
                 );
             }
         });
@@ -134,7 +154,11 @@ function App() {
         return () => {
             socket.disconnect();
         };
-    }, [userId, notificationStorageKey, acknowledgedNotificationStorageKey]);
+    }, [
+        userId,
+        notificationStorageKey,
+        acknowledgedNotificationStorageKey
+    ]);
 
     const handleLogin = (nextUser) => {
         setUser(nextUser);
@@ -142,25 +166,33 @@ function App() {
     };
 
     const handleAcknowledgeNotification = (notificationId) => {
-        const acknowledgedIds = readStoredList(acknowledgedNotificationStorageKey);
+        const acknowledgedIds = readStoredList(
+            acknowledgedNotificationStorageKey
+        );
+
         const nextAcknowledgedIds = acknowledgedIds.includes(notificationId)
             ? acknowledgedIds
             : [...acknowledgedIds, notificationId];
 
-        writeStoredList(acknowledgedNotificationStorageKey, nextAcknowledgedIds);
+        writeStoredList(
+            acknowledgedNotificationStorageKey,
+            nextAcknowledgedIds
+        );
 
         setNotifications((currentNotifications) => {
-            const nextNotifications = currentNotifications
-                .filter((notification) => notification.id !== notificationId);
+            const nextNotifications = currentNotifications.filter(
+                (notification) => notification.id !== notificationId
+            );
 
             writeStoredList(notificationStorageKey, nextNotifications);
+
             return nextNotifications;
         });
     };
 
     const handleLogout = async () => {
         try {
-            await fetch(`${API_URL}/auth/logout', {
+            await fetch(`${API_URL}/auth/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });
