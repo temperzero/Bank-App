@@ -267,7 +267,7 @@
                   "properties": {
                     "balance": {
                       "type": "number",
-                      "example": 5000.5
+                      "example": 0
                     }
                   }
                 }
@@ -436,7 +436,7 @@
           },
           "balance": {
             "type": "number",
-            "example": 5000.5
+            "example": 0
           },
           "isVerified": {
             "type": "boolean",

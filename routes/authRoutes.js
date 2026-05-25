@@ -45,7 +45,6 @@ router.post('/signup', async (req, res) => {
         const newUser = await db.user.create({
             email,
             password,
-            balance: 5000.50,
             isVerified: false,
             otp: '123456',
             emailVerificationToken,

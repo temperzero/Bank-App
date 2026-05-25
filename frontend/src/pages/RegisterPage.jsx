@@ -7,7 +7,8 @@ function RegisterPage({ onShowLogin }) {
     const [emailSent, setEmailSent] = useState(false);
     const [message, setMessage] = useState('');
 
-    const handleRegister = async () => {
+    const handleRegister = async (event) => {
+        event.preventDefault();
         setMessage('');
 
         try {
@@ -56,7 +57,10 @@ function RegisterPage({ onShowLogin }) {
                 className="auth-visual"
                 aria-label="Bank registration preview"
             >
-                <div className="brand-mark">B</div>
+                <div className="brand-lockup">
+                    <div className="brand-mark">B</div>
+                    <span>Boolean Bank</span>
+                </div>
 
                 <div className="auth-visual-copy">
                     <p className="eyebrow">
@@ -66,17 +70,17 @@ function RegisterPage({ onShowLogin }) {
                     <h1>Create your account</h1>
 
                     <p>
-                        Open your banking dashboard
-                        with a starting balance and
-                        verified access.
+                        Open your banking dashboard,
+                        verify your email, and keep
+                        your account activity close.
                     </p>
                 </div>
 
                 <div className="account-preview">
                     <div>
-                        <span>New account bonus</span>
+                        <span>Security</span>
 
-                        <strong>$5,000.50</strong>
+                        <strong>Verified banking access</strong>
                     </div>
 
                     <div className="preview-row">
@@ -91,7 +95,10 @@ function RegisterPage({ onShowLogin }) {
                 className="auth-panel"
                 aria-labelledby="register-title"
             >
-                <div className="auth-card">
+                <form
+                    className="auth-card"
+                    onSubmit={handleRegister}
+                >
                     <div className="auth-heading">
                         <p className="eyebrow">
                             Register
@@ -144,8 +151,7 @@ function RegisterPage({ onShowLogin }) {
 
                             <button
                                 className="primary-button"
-                                onClick={handleRegister}
-                                type="button"
+                                type="submit"
                             >
                                 Create account
                             </button>
@@ -187,7 +193,7 @@ function RegisterPage({ onShowLogin }) {
                             Login
                         </button>
                     </p>
-                </div>
+                </form>
             </section>
         </main>
     );

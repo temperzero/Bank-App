@@ -298,6 +298,10 @@ function DashboardPage({
                     <div className="brand-mark small">B</div>
 
                     <div>
+                        <p className="dashboard-brand">
+                            Boolean Bank
+                        </p>
+
                         <p className="eyebrow">
                             Account overview
                         </p>

@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     balance: {
         type: Number,
         required: true,
-        default: 5000.50,
+        default: 0,
         min: 0
     },
     isVerified: {
